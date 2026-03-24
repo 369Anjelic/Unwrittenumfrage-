@@ -1,0 +1,870 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <meta name="theme-color" content="#3987b8">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Unwritten Umfrage">
+    <link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 180 180'><rect fill='%233987b8' width='180' height='180'/><text x='50%' y='50%' font-size='80' fill='white' text-anchor='middle' dy='.3em' font-family='system-ui'>📊</text></svg>">
+    <link rel="manifest" href="data:application/manifest+json,{%22name%22:%22Unwritten Umfrage%22,%22short_name%22:%22Umfrage%22,%22start_url%22:%22./index.html%22,%22display%22:%22standalone%22,%22background_color%22:%22%23ffffff%22,%22theme_color%22:%22%233987b8%22,%22orientation%22:%22portrait-primary%22,%22icons%22:[{%22src%22:%22data:image/svg%2bxml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 192 192'><rect fill='%233987b8' width='192' height='192'/><text x='50%25' y='50%25' font-size='100' fill='white' text-anchor='middle' dy='.3em' font-family='system-ui'>📊</text></svg>%22,%22sizes%22:%22192x192%22,%22type%22:%22image/svg%2bxml%22,%22purpose%22:%22any%22},{%22src%22:%22data:image/svg%2bxml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'><rect fill='%233987b8' width='512' height='512'/><text x='50%25' y='50%25' font-size='280' fill='white' text-anchor='middle' dy='.3em' font-family='system-ui'>📊</text></svg>%22,%22sizes%22:%22512x512%22,%22type%22:%22image/svg%2bxml%22,%22purpose%22:%22any%22}]}">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <title>Unwritten Studio - Umfrage App</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary-blue: #3987b8;
+            --primary-blue-dark: #2a5f8d;
+            --black: #3e4447;
+            --light-gray: #f4f5f5;
+            --white: #ffffff;
+            --safe-top: max(16px, env(safe-area-inset-top));
+            --safe-bottom: max(16px, env(safe-area-inset-bottom));
+        }
+
+        html, body {
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+        }
+
+        body {
+            font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: var(--light-gray);
+            color: var(--black);
+            display: flex;
+            flex-direction: column;
+            padding-top: var(--safe-top);
+            padding-bottom: var(--safe-bottom);
+        }
+
+        .app-container {
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            background: var(--white);
+            overflow: hidden;
+        }
+
+        /* HEADER */
+        .app-header {
+            background: linear-gradient(135deg, var(--primary-blue), var(--primary-blue-dark));
+            color: white;
+            padding: 20px 16px;
+            text-align: center;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            flex-shrink: 0;
+        }
+
+        .app-header h1 {
+            font-size: 20px;
+            font-weight: 700;
+            margin-bottom: 4px;
+        }
+
+        .app-header p {
+            font-size: 12px;
+            opacity: 0.9;
+        }
+
+        /* TABS */
+        .tab-navigation {
+            display: flex;
+            background: white;
+            border-bottom: 1px solid #e5e7eb;
+            flex-shrink: 0;
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        .tab-btn {
+            flex: 1;
+            padding: 14px;
+            border: none;
+            background: transparent;
+            color: #9ca3af;
+            font-weight: 600;
+            font-size: 13px;
+            cursor: pointer;
+            font-family: inherit;
+            white-space: nowrap;
+            position: relative;
+            transition: color 0.3s ease;
+            min-width: 80px;
+        }
+
+        .tab-btn.active {
+            color: var(--primary-blue);
+        }
+
+        .tab-btn.active::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: var(--primary-blue);
+        }
+
+        /* CONTENT AREA */
+        .content-area {
+            flex: 1;
+            overflow-y: auto;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        .tab-content {
+            display: none;
+            padding: 16px;
+            height: 100%;
+            overflow-y: auto;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        /* PROGRESS BAR */
+        .progress-bar {
+            width: 100%;
+            height: 6px;
+            background: #e5e7eb;
+            margin-bottom: 24px;
+            border-radius: 3px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--primary-blue), var(--primary-blue-dark));
+            width: 0%;
+            transition: width 0.3s ease;
+        }
+
+        /* QUESTIONS */
+        .question {
+            margin-bottom: 28px;
+            padding-bottom: 28px;
+            border-bottom: 1px solid #e5e7eb;
+        }
+
+        .question:last-child {
+            border: none;
+        }
+
+        .q-num {
+            display: inline-block;
+            background: var(--primary-blue);
+            color: white;
+            padding: 6px 12px;
+            border-radius: 6px;
+            font-size: 11px;
+            font-weight: 700;
+            margin-bottom: 10px;
+        }
+
+        .q-text {
+            font-size: 16px;
+            font-weight: 600;
+            margin-bottom: 14px;
+            display: block;
+        }
+
+        .options {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .option {
+            display: flex;
+            align-items: center;
+            padding: 12px;
+            border-radius: 10px;
+            background: var(--light-gray);
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .option:active {
+            background: #e5e7eb;
+            transform: scale(0.98);
+        }
+
+        .option input {
+            width: 20px;
+            height: 20px;
+            cursor: pointer;
+            accent-color: var(--primary-blue);
+            margin-right: 12px;
+        }
+
+        .option label {
+            cursor: pointer;
+            flex: 1;
+            font-weight: 500;
+            font-size: 15px;
+        }
+
+        /* TEXTAREA */
+        textarea {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e5e7eb;
+            border-radius: 10px;
+            font-family: inherit;
+            font-size: 14px;
+            resize: vertical;
+            min-height: 90px;
+            color: var(--black);
+            transition: border-color 0.3s ease;
+        }
+
+        textarea:focus {
+            outline: none;
+            border-color: var(--primary-blue);
+        }
+
+        /* BUTTONS */
+        .button-group {
+            display: flex;
+            gap: 12px;
+            margin-top: 24px;
+            justify-content: center;
+        }
+
+        button {
+            padding: 14px 24px;
+            border: none;
+            border-radius: 10px;
+            font-family: inherit;
+            font-weight: 600;
+            font-size: 15px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            flex: 1;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary-blue), var(--primary-blue-dark));
+            color: white;
+            box-shadow: 0 4px 12px rgba(57, 135, 184, 0.3);
+        }
+
+        .btn-primary:active {
+            transform: scale(0.98);
+            box-shadow: 0 2px 6px rgba(57, 135, 184, 0.3);
+        }
+
+        .btn-secondary {
+            background: var(--light-gray);
+            color: var(--black);
+        }
+
+        .btn-secondary:active {
+            background: #e5e7eb;
+        }
+
+        /* ANALYTICS */
+        .stat-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            margin-bottom: 24px;
+        }
+
+        .stat-card {
+            background: var(--light-gray);
+            padding: 16px;
+            border-radius: 12px;
+            border-left: 4px solid var(--primary-blue);
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 28px;
+            font-weight: 700;
+            color: var(--primary-blue);
+            margin-bottom: 6px;
+        }
+
+        .stat-label {
+            font-size: 12px;
+            color: #6b7280;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        /* SURVEY LIST */
+        .survey-item {
+            background: var(--light-gray);
+            padding: 12px;
+            border-radius: 10px;
+            margin-bottom: 10px;
+            border-left: 3px solid var(--primary-blue);
+            font-size: 13px;
+        }
+
+        .survey-item strong {
+            color: var(--primary-blue);
+            display: block;
+            margin-bottom: 6px;
+        }
+
+        .survey-item span {
+            color: #6b7280;
+            font-size: 12px;
+        }
+
+        /* SUCCESS MESSAGE */
+        .success-message {
+            background: #D4EDDA;
+            color: #155724;
+            padding: 14px;
+            border-radius: 10px;
+            margin-bottom: 16px;
+            text-align: center;
+            font-weight: 600;
+            display: none;
+            animation: slideIn 0.3s ease;
+        }
+
+        .success-message.show {
+            display: block;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* EXPORT BUTTONS */
+        .export-buttons {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-top: 16px;
+        }
+
+        .export-btn {
+            padding: 12px;
+            background: var(--light-gray);
+            color: var(--primary-blue);
+            border: 2px solid var(--primary-blue);
+            border-radius: 10px;
+            font-weight: 600;
+            font-size: 13px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            font-family: inherit;
+        }
+
+        .export-btn:active {
+            background: var(--primary-blue);
+            color: white;
+        }
+
+        /* FOOTER */
+        footer {
+            text-align: center;
+            padding: 16px;
+            font-size: 12px;
+            color: #9ca3af;
+            border-top: 1px solid #e5e7eb;
+            flex-shrink: 0;
+            background: white;
+        }
+
+        /* RESPONSIVE */
+        @media (max-width: 480px) {
+            .stat-grid {
+                grid-template-columns: 1fr;
+            }
+
+            button {
+                font-size: 14px;
+                padding: 12px 16px;
+            }
+        }
+
+        .rating-buttons {
+            display: flex;
+            justify-content: space-between;
+            gap: 6px;
+        }
+
+        .rating-btn {
+            flex: 1;
+            padding: 10px;
+            background: var(--light-gray);
+            border: 2px solid transparent;
+            border-radius: 8px;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            font-family: inherit;
+            font-weight: 600;
+        }
+
+        .rating-btn.selected {
+            background: var(--primary-blue);
+            color: white;
+            border-color: var(--primary-blue);
+        }
+
+        .rating-btn:active {
+            transform: scale(0.95);
+        }
+    </style>
+</head>
+<body>
+    <div class="app-container">
+        <!-- HEADER -->
+        <div class="app-header">
+            <h1>📊 Unwritten Umfrage</h1>
+            <p>Feedback App</p>
+        </div>
+
+        <!-- TABS -->
+        <div class="tab-navigation">
+            <button class="tab-btn active" data-tab="form">📋 Umfrage</button>
+            <button class="tab-btn" data-tab="analytics">📊 Auswertung</button>
+            <button class="tab-btn" data-tab="about">ℹ️ Info</button>
+        </div>
+
+        <!-- CONTENT -->
+        <div class="content-area">
+            <!-- FORM TAB -->
+            <div id="form" class="tab-content active">
+                <div class="success-message" id="successMessage">
+                    ✅ Umfrage gespeichert!
+                </div>
+
+                <div class="progress-bar">
+                    <div class="progress-fill" id="progressBar"></div>
+                </div>
+
+                <form id="feedbackForm">
+                    <!-- Q1 -->
+                    <div class="question">
+                        <span class="q-num">1/12</span>
+                        <label class="q-text">Wie hast du uns entdeckt?</label>
+                        <div class="options">
+                            <div class="option">
+                                <input type="radio" id="q1_a" name="discovery" value="Suchmaschine">
+                                <label for="q1_a">🔍 Suchmaschine</label>
+                            </div>
+                            <div class="option">
+                                <input type="radio" id="q1_b" name="discovery" value="Social Media">
+                                <label for="q1_b">📱 Social Media</label>
+                            </div>
+                            <div class="option">
+                                <input type="radio" id="q1_c" name="discovery" value="Empfehlung">
+                                <label for="q1_c">👥 Empfehlung</label>
+                            </div>
+                            <div class="option">
+                                <input type="radio" id="q1_d" name="discovery" value="Direkter Link">
+                                <label for="q1_d">🔗 Direkter Link</label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Q2 -->
+                    <div class="question">
+                        <span class="q-num">2/12</span>
+                        <label class="q-text">Wie hat dich die App gefühlt?</label>
+                        <div class="options">
+                            <div class="option">
+                                <input type="radio" id="q2_a" name="emotion" value="Inspiriert">
+                                <label for="q2_a">✨ Inspiriert</label>
+                            </div>
+                            <div class="option">
+                                <input type="radio" id="q2_b" name="emotion" value="Neugierig">
+                                <label for="q2_b">🤔 Neugierig</label>
+                            </div>
+                            <div class="option">
+                                <input type="radio" id="q2_c" name="emotion" value="Verwirrt">
+                                <label for="q2_c">😕 Verwirrt</label>
+                            </div>
+                            <div class="option">
+                                <input type="radio" id="q2_d" name="emotion" value="Neutral">
+                                <label for="q2_d">😐 Neutral</label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Q3 -->
+                    <div class="question">
+                        <span class="q-num">3/12</span>
+                        <label class="q-text">Wie verständlich ist das Konzept? (1-5)</label>
+                        <div class="rating-buttons" id="q3_rating">
+                            <button type="button" class="rating-btn" data-value="1">1️⃣</button>
+                            <button type="button" class="rating-btn" data-value="2">2️⃣</button>
+                            <button type="button" class="rating-btn" data-value="3">3️⃣</button>
+                            <button type="button" class="rating-btn" data-value="4">4️⃣</button>
+                            <button type="button" class="rating-btn" data-value="5">5️⃣</button>
+                        </div>
+                        <input type="hidden" id="q3_hidden" name="clarity">
+                    </div>
+
+                    <!-- Q4 -->
+                    <div class="question">
+                        <span class="q-num">4/12</span>
+                        <label class="q-text">Design-Bewertung (1-5)</label>
+                        <div class="rating-buttons" id="q4_rating">
+                            <button type="button" class="rating-btn" data-value="1">😞</button>
+                            <button type="button" class="rating-btn" data-value="2">😐</button>
+                            <button type="button" class="rating-btn" data-value="3">🙂</button>
+                            <button type="button" class="rating-btn" data-value="4">😊</button>
+                            <button type="button" class="rating-btn" data-value="5">😍</button>
+                        </div>
+                        <input type="hidden" id="q4_hidden" name="design">
+                    </div>
+
+                    <!-- Q5 -->
+                    <div class="question">
+                        <span class="q-num">5/12</span>
+                        <label class="q-text">Was hat dir am besten gefallen?</label>
+                        <textarea id="q5" name="liked" placeholder="Schreib hier..."></textarea>
+                    </div>
+
+                    <!-- Q6 -->
+                    <div class="question">
+                        <span class="q-num">6/12</span>
+                        <label class="q-text">Was fehlt dir noch?</label>
+                        <textarea id="q6" name="missing" placeholder="Deine Gedanken..."></textarea>
+                    </div>
+
+                    <!-- Q7 -->
+                    <div class="question">
+                        <span class="q-num">7/12</span>
+                        <label class="q-text">Würdest du weiterempfehlen?</label>
+                        <div class="options">
+                            <div class="option">
+                                <input type="radio" id="q7_a" name="recommend" value="Ja">
+                                <label for="q7_a">👍 Ja</label>
+                            </div>
+                            <div class="option">
+                                <input type="radio" id="q7_b" name="recommend" value="Vielleicht">
+                                <label for="q7_b">🤷 Vielleicht</label>
+                            </div>
+                            <div class="option">
+                                <input type="radio" id="q7_c" name="recommend" value="Nein">
+                                <label for="q7_c">👎 Nein</label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Q8 -->
+                    <div class="question">
+                        <span class="q-num">8/12</span>
+                        <label class="q-text">NPS Score (0-10)</label>
+                        <div class="rating-buttons" id="q8_rating">
+                            <button type="button" class="rating-btn" data-value="0">0</button>
+                            <button type="button" class="rating-btn" data-value="1">1</button>
+                            <button type="button" class="rating-btn" data-value="2">2</button>
+                            <button type="button" class="rating-btn" data-value="3">3</button>
+                            <button type="button" class="rating-btn" data-value="4">4</button>
+                            <button type="button" class="rating-btn" data-value="5">5</button>
+                            <button type="button" class="rating-btn" data-value="6">6</button>
+                            <button type="button" class="rating-btn" data-value="7">7</button>
+                            <button type="button" class="rating-btn" data-value="8">8</button>
+                            <button type="button" class="rating-btn" data-value="9">9</button>
+                            <button type="button" class="rating-btn" data-value="10">🔟</button>
+                        </div>
+                        <input type="hidden" id="q8_hidden" name="nps">
+                    </div>
+
+                    <!-- Q9 -->
+                    <div class="question">
+                        <span class="q-num">9/12</span>
+                        <label class="q-text">Auf welchem Gerät?</label>
+                        <div class="options">
+                            <div class="option">
+                                <input type="radio" id="q9_a" name="device" value="iPhone">
+                                <label for="q9_a">📱 iPhone</label>
+                            </div>
+                            <div class="option">
+                                <input type="radio" id="q9_b" name="device" value="Android">
+                                <label for="q9_b">📱 Android</label>
+                            </div>
+                            <div class="option">
+                                <input type="radio" id="q9_c" name="device" value="Desktop">
+                                <label for="q9_c">💻 Desktop</label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Q10 -->
+                    <div class="question">
+                        <span class="q-num">10/12</span>
+                        <label class="q-text">Allgemeines Feedback</label>
+                        <textarea id="q10" name="feedback" placeholder="Deine Meinung..."></textarea>
+                    </div>
+
+                    <!-- Q11 -->
+                    <div class="question">
+                        <span class="q-num">11/12</span>
+                        <label class="q-text">Deine Email (optional)</label>
+                        <textarea id="q11" name="email" placeholder="deine@email.com" style="min-height: 50px;"></textarea>
+                    </div>
+
+                    <!-- Q12 -->
+                    <div class="question">
+                        <span class="q-num">12/12</span>
+                        <label class="q-text">Weitere Anmerkungen?</label>
+                        <textarea id="q12" name="additional" placeholder="Optional..."></textarea>
+                    </div>
+
+                    <!-- BUTTONS -->
+                    <div class="button-group">
+                        <button type="reset" class="btn-secondary">🔄 Zurück</button>
+                        <button type="submit" class="btn-primary">✅ Speichern</button>
+                    </div>
+                </form>
+            </div>
+
+            <!-- ANALYTICS TAB -->
+            <div id="analytics" class="tab-content">
+                <h2 style="font-size: 18px; margin-bottom: 20px; color: var(--primary-blue);">📊 Auswertungen</h2>
+
+                <div class="stat-grid">
+                    <div class="stat-card">
+                        <div class="stat-value" id="totalSurveys">0</div>
+                        <div class="stat-label">Umfragen</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value" id="avgNPS">-</div>
+                        <div class="stat-label">Ø NPS</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value" id="avgDesign">-</div>
+                        <div class="stat-label">Ø Design</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value" id="recommendRate">-%</div>
+                        <div class="stat-label">Empfehlung</div>
+                    </div>
+                </div>
+
+                <h3 style="font-size: 16px; margin: 20px 0 16px; color: var(--black);">Alle Umfragen</h3>
+                <div id="surveyList" style="max-height: 400px; overflow-y: auto; -webkit-overflow-scrolling: touch;"></div>
+
+                <div class="export-buttons">
+                    <button class="export-btn" id="exportJSON">📥 JSON</button>
+                    <button class="export-btn" id="exportCSV">📥 CSV</button>
+                </div>
+
+                <button class="export-btn" style="width: 100%; margin-top: 10px; background: #fee2e2; color: #dc2626; border-color: #dc2626;" id="clearData">🗑️ Löschen</button>
+            </div>
+
+            <!-- ABOUT TAB -->
+            <div id="about" class="tab-content">
+                <h2 style="font-size: 18px; margin-bottom: 16px; color: var(--primary-blue);">ℹ️ Über diese App</h2>
+                
+                <div style="background: var(--light-gray); padding: 16px; border-radius: 12px; margin-bottom: 16px; line-height: 1.6; font-size: 14px;">
+                    <p style="margin-bottom: 12px;"><strong>Unwritten Umfrage App</strong></p>
+                    <p style="margin-bottom: 12px;">Eine lokale Feedback-App mit vollständiger Datenspeicherung auf deinem Gerät.</p>
+                    
+                    <p style="margin-top: 16px; margin-bottom: 8px;"><strong>✨ Features:</strong></p>
+                    <ul style="list-style: none; color: #666;">
+                        <li>✅ 12 Fragen-Umfrage</li>
+                        <li>✅ Alle Daten lokal gespeichert</li>
+                        <li>✅ Analytics Dashboard</li>
+                        <li>✅ JSON/CSV Export</li>
+                        <li>✅ Funktioniert offline</li>
+                        <li>✅ Keine Internetverbindung nötig</li>
+                    </ul>
+
+                    <p style="margin-top: 16px; margin-bottom: 8px;"><strong>💾 Datenspeicherung:</strong></p>
+                    <p style="color: #666;">Alle Umfragen werden lokal auf deinem iPhone gespeichert. Deine Daten verlassen dein Gerät nicht, wenn du sie nicht exportierst!</p>
+
+                    <p style="margin-top: 16px; margin-bottom: 8px;"><strong>📤 Export:</strong></p>
+                    <p style="color: #666;">Unter "Auswertung" kannst du alle Daten als JSON oder CSV exportieren und auf deinen Computer übertragen.</p>
+
+                    <p style="margin-top: 16px; font-size: 12px; color: #999;">Version 1.0 | © 2026 Unwritten Studio</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- FOOTER -->
+        <footer>
+            📲 Alle Daten werden lokal auf deinem iPhone gespeichert
+        </footer>
+    </div>
+
+    <script>
+        const STORAGE_KEY = 'unwritten_surveys_app';
+
+        // TAB NAVIGATION
+        document.querySelectorAll('.tab-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const tabName = btn.dataset.tab;
+                
+                document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+                document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+                
+                btn.classList.add('active');
+                document.getElementById(tabName).classList.add('active');
+
+                if (tabName === 'analytics') {
+                    updateAnalytics();
+                }
+            });
+        });
+
+        // RATING BUTTONS
+        function setupRatingButtons(containerId, hiddenInputId) {
+            const container = document.getElementById(containerId);
+            if (!container) return;
+
+            container.querySelectorAll('.rating-btn').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    container.querySelectorAll('.rating-btn').forEach(b => b.classList.remove('selected'));
+                    btn.classList.add('selected');
+                    document.getElementById(hiddenInputId).value = btn.dataset.value;
+                    updateProgress();
+                });
+            });
+        }
+
+        setupRatingButtons('q3_rating', 'q3_hidden');
+        setupRatingButtons('q4_rating', 'q4_hidden');
+        setupRatingButtons('q8_rating', 'q8_hidden');
+
+        // FORM SUBMISSION
+        document.getElementById('feedbackForm').addEventListener('submit', (e) => {
+            e.preventDefault();
+
+            const formData = new FormData(e.target);
+            const survey = {
+                id: Date.now(),
+                timestamp: new Date().toLocaleString('de-DE'),
+                ...Object.fromEntries(formData)
+            };
+
+            let surveys = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
+            surveys.push(survey);
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(surveys));
+
+            // Success message
+            const msg = document.getElementById('successMessage');
+            msg.classList.add('show');
+            setTimeout(() => msg.classList.remove('show'), 3000);
+
+            // Reset
+            e.target.reset();
+            document.querySelectorAll('.rating-btn').forEach(b => b.classList.remove('selected'));
+            updateProgress();
+            updateAnalytics();
+        });
+
+        // PROGRESS
+        function updateProgress() {
+            const form = document.getElementById('feedbackForm');
+            const inputs = form.querySelectorAll('input[type="radio"], textarea, input[type="hidden"]');
+            const filled = Array.from(inputs).filter(i => {
+                if (i.type === 'hidden') return i.value;
+                if (i.type === 'radio') return i.checked;
+                return i.value;
+            }).length;
+            const progress = (filled / inputs.length) * 100;
+            document.getElementById('progressBar').style.width = progress + '%';
+        }
+
+        document.getElementById('feedbackForm').addEventListener('change', updateProgress);
+        document.getElementById('feedbackForm').addEventListener('input', updateProgress);
+
+        // ANALYTICS
+        function updateAnalytics() {
+            const surveys = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
+            
+            document.getElementById('totalSurveys').textContent = surveys.length;
+
+            if (surveys.length > 0) {
+                const npsScores = surveys.map(s => parseInt(s.nps || 0)).filter(n => n >= 0);
+                const avgNPS = npsScores.length > 0 ? (npsScores.reduce((a, b) => a + b) / npsScores.length).toFixed(1) : '-';
+                document.getElementById('avgNPS').textContent = avgNPS;
+
+                const designRatings = surveys.map(s => parseInt(s.design || 0)).filter(n => n > 0);
+                const avgDesign = designRatings.length > 0 ? (designRatings.reduce((a, b) => a + b) / designRatings.length).toFixed(1) : '-';
+                document.getElementById('avgDesign').textContent = avgDesign;
+
+                const recommends = surveys.filter(s => s.recommend === 'Ja').length;
+                const recommendRate = surveys.length > 0 ? ((recommends / surveys.length) * 100).toFixed(0) : '-';
+                document.getElementById('recommendRate').textContent = recommendRate + '%';
+
+                // Survey list
+                const list = document.getElementById('surveyList');
+                list.innerHTML = surveys.map((s, i) => `
+                    <div class="survey-item">
+                        <strong>#${surveys.length - i} - ${s.timestamp}</strong>
+                        <span>NPS: ${s.nps || '-'} | Design: ${s.design || '-'} | Gerät: ${s.device || '-'}</span>
+                    </div>
+                `).join('');
+            }
+        }
+
+        // EXPORT
+        document.getElementById('exportJSON').addEventListener('click', () => {
+            const surveys = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
+            const dataStr = JSON.stringify(surveys, null, 2);
+            const dataBlob = new Blob([dataStr], {type: 'application/json'});
+            const url = URL.createObjectURL(dataBlob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = 'umfragen_' + new Date().toISOString().split('T')[0] + '.json';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        });
+
+        document.getElementById('exportCSV').addEventListener('click', () => {
+            const surveys = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
+            if (surveys.length === 0) return;
+
+            const headers = Object.keys(surveys[0]);
+            const csv = [headers.join(','), ...surveys.map(s => headers.map(h => `"${s[h] || ''}"`).join(','))].join('\n');
+            const blob = new Blob([csv], {type: 'text/csv'});
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = 'umfragen_' + new Date().toISOString().split('T')[0] + '.csv';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        });
+
+        document.getElementById('clearData').addEventListener('click', () => {
+            if (confirm('Alle Umfragen wirklich löschen? Das kann nicht rückgängig gemacht werden!')) {
+                localStorage.removeItem(STORAGE_KEY);
+                updateAnalytics();
+                document.getElementById('surveyList').innerHTML = '';
+            }
+        });
+
+        // SERVICE WORKER (Offline-Funktionalität)
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('data:application/javascript,self.addEventListener("install",e=>self.skipWaiting()),self.addEventListener("activate",e=>e.waitUntil(clients.claim())),self.addEventListener("fetch",e=>{e.respondWith(fetch(e.request).catch(()=>caches.match(e.request)))})');
+        }
+
+        // Initialize
+        updateProgress();
+    </script>
+</body>
+</html>
